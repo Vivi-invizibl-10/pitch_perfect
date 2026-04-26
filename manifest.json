@@ -1,10 +1,10 @@
 {
-  "name": "Cricket Odds Calculator",
-  "short_name": "OddsCalc",
-  "start_url": "/pitch_perfect/pitch_perfect.html",
+  "name": "Pitch Perfect - Cricket Bet Calculator",
+  "short_name": "PitchPerfect",
+  "start_url": "/pitch_perfect/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#07090d",
+  "theme_color": "#07090d",
   "icons": [
     {
       "src": "icon.png",
