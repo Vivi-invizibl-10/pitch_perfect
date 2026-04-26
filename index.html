@@ -1,12 +1,26 @@
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pitch Perfect</title>
 
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/pitch_perfect/sw.js')
-      .then(() => console.log('Service Worker Registered'))
-      .catch(err => console.log('SW error:', err));
-  });
-}
-</script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+</head>
+
+<body>
+
+  <h1>Pitch Perfect 🎶</h1>
+  <p>Your app is now live 🚀</p>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/Pitch_Perfect/sw.js')
+          .then(() => console.log('Service Worker Registered'))
+          .catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>
