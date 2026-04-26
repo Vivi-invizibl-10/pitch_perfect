@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Pitch Perfect — Cricket Bet Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root {
+    --bg-0: #07090d;
+    --bg-1: #0d1118;
+    --bg-2: #141a24;
+    --bg-3: #1c2330;
+    --line: #232c3b;
+    --line-soft: #1a2230;
+    --text: #e8edf5;
+    --text-dim: #9aa6b8;
+    --text-mute: #6b7689;
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, 0.12);
+    --green-line: rgba(52, 211, 153, 0.35);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.12);
+    --red-line: rgba(248, 113, 113, 0.35);
+    --amber: #fbbf24;
+    --gold-1: #fde68a;
+    --gold-2: #f59e0b;
+    --gold-3: #d97706;
+    --teal: #2dd4bf;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(circle at 15% 0%, rgba(245, 158, 11, 0.08), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(52, 211, 153, 0.06), transparent 45%),
+      var(--bg-0);
+    padding: 16px 14px 80px;
+  }
+  .shell { max-width: 760px; margin: 0 auto; }
+
+  header.brand { text-align: center; padding: 28px 0 22px; }
+  header.brand .pill {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-2);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+    background: rgba(245, 158, 11, 0.05);
+    animation: fadeSlideIn 0.6s ease;
+  }
+  header.brand h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: clamp(48px, 12vw, 84px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #fde68a 0%, #f59e0b 40%, #d97706 70%, #92400e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 24px rgba(245, 158, 11, 0.25));
+    margin-bottom: 6px;
+    animation: glowPulse 4s ease-in-out infinite, fadeSlideIn 0.7s ease;
+  }
+  header.brand .tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-mute);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    animation: fadeSlideIn 0.8s ease;
+  }
+  header.brand .underline {
+    width: 80px;
+    height: 2px;
+    margin: 14px auto 0;
+    background: linear-gradient(90deg, transparent, var(--gold-2), transparent);
+    animation: fadeSlideIn 0.9s ease;
+  }
+
+  section.card {
+    background: var(--bg-1);
+    border: 1px solid var(--line-soft);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+    animation: fadeSlideIn 0.5s ease backwards;
+  }
+  section.card:nth-of-type(1) { animation-delay: 0.05s; }
+  section.card:nth-of-type(2) { animation-delay: 0.10s; }
+  section.card:nth-of-type(3) { animation-delay: 0.15s; }
+  section.card:nth-of-type(4) { animation-delay: 0.20s; }
+  section.card:nth-of-type(5) { animation-delay: 0.25s; }
+  section.card:nth-of-type(6) { animation-delay: 0.30s; }
+  section.card:nth-of-type(7) { animation-delay: 0.35s; }
+  section.card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  section.card .label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--gold-2);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--gold-2);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  input[type="text"], input[type="number"], input[type="date"], select {
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 13px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    transition: border 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--gold-2);
+    background: var(--bg-3);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .purse { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .purse .stat {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .purse .stat.full { grid-column: 1 / -1; }
+  .purse .stat .k {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    margin-bottom: 6px;
+  }
+  .purse .stat .v {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    transition: color 0.3s ease;
+  }
+  .purse .stat .sub { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+  .purse .stat.balance .v { color: var(--gold-1); }
+  .purse .stat.exposure .v { color: var(--amber); }
+
+  .bet-list { display: flex; flex-direction: column; gap: 10px; }
+  .bet-row {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    animation: rowFadeIn 0.3s ease;
+  }
+  .bet-row.back { border-left: 3px solid var(--accent); }
+  .bet-row.lay { border-left: 3px solid var(--gold-2); }
+  .bet-row .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .bet-type-toggle {
+    display: inline-flex;
+    background: var(--bg-3);
+    border-radius: 8px;
+    padding: 3px;
+    border: 1px solid var(--line);
+  }
+  .bet-type-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 5px 12px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .bet-type-toggle button.active.back { background: var(--accent); color: #062338; }
+  .bet-type-toggle button.active.lay { background: var(--gold-2); color: #2a1804; }
+  .remove-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-mute);
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.15s;
+  }
+  .remove-btn:hover { border-color: var(--red); color: var(--red); }
+  .bet-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .bet-fields .mini-field label {
+    font-size: 10px;
+    color: var(--text-mute);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+  }
+  .bet-fields .mini-field input,
+  .bet-fields .mini-field select { padding: 9px 10px; font-size: 14px; }
+  .pnl-display { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pnl-cell {
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .pnl-cell.profit { background: var(--green-soft); border-color: var(--green-line); }
+  .pnl-cell.loss { background: var(--red-soft); border-color: var(--red-line); }
+  .pnl-cell .pnl-label {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-mute);
+    margin-bottom: 3px;
+    font-weight: 600;
+  }
+  .pnl-cell .pnl-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 15px;
+    transition: color 0.3s ease;
+  }
+  .pnl-cell.profit .pnl-val { color: var(--green); }
+  .pnl-cell.loss .pnl-val { color: var(--red); }
+  .liability-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-3);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+  .liability-strip .lbl { color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+  .liability-strip .val { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--amber); }
+  .add-btn {
+    width: 100%;
+    background: transparent;
+    border: 1.5px dashed var(--line);
+    color: var(--text-dim);
+    padding: 13px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .add-btn:hover {
+    border-color: var(--gold-2);
+    color: var(--gold-2);
+    background: rgba(245, 158, 11, 0.04);
+  }
+  .empty-msg {
+    text-align: center;
+    padding: 24px 12px;
+    color: var(--text-mute);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  .outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .outcome-card {
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid;
+    text-align: center;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+  .outcome-card.profit { background: var(--green-soft); border-color: var(--green-line); }
+  .outcome-card.loss { background: var(--red-soft); border-color: var(--red-line); }
+  .outcome-card.neutral { background: var(--bg-2); border-color: var(--line); }
+  .outcome-card .team-name {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .outcome-card .team-name span { color: var(--text); font-weight: 700; }
+  .outcome-card .net {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    transition: color 0.4s ease;
+  }
+  .outcome-card.profit .net { color: var(--green); }
+  .outcome-card.loss .net { color: var(--red); }
+  .outcome-card.neutral .net { color: var(--text-dim); }
+
+  .strategy-panel, .custom-designer {
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.06), rgba(245, 158, 11, 0.02));
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    animation: fadeSlideIn 0.4s ease;
+  }
+  .custom-designer {
+    background: linear-gradient(180deg, rgba(45, 212, 191, 0.05), rgba(45, 212, 191, 0.01));
+    border-color: rgba(45, 212, 191, 0.22);
+  }
+  .rp-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-1);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .custom-designer .rp-title { color: var(--teal); }
+  .rp-sub {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .strategy-table { display: flex; flex-direction: column; gap: 8px; }
+  .strategy-row {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    transition: all 0.25s ease;
+    animation: rowFadeIn 0.4s ease backwards;
+    position: relative;
+    overflow: hidden;
+  }
+  .strategy-row:nth-child(1) { animation-delay: 0.05s; }
+  .strategy-row:nth-child(2) { animation-delay: 0.10s; }
+  .strategy-row:nth-child(3) { animation-delay: 0.15s; }
+  .strategy-row:nth-child(4) { animation-delay: 0.20s; }
+  .strategy-row:nth-child(5) { animation-delay: 0.25s; }
+  .strategy-row:nth-child(6) { animation-delay: 0.30s; }
+  .strategy-row:nth-child(7) { animation-delay: 0.35s; }
+  .strategy-row:hover {
+    transform: translateY(-2px);
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+  .strategy-row.featured {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.03));
+    border-color: rgba(245, 158, 11, 0.45);
+  }
+  .strategy-row.featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(253, 230, 138, 0.08), transparent);
+    animation: shimmer 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .strategy-row.unfit {
+    opacity: 0.55;
+    border-style: dashed;
+  }
+  .strategy-row .sr-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .strategy-row .sr-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .strategy-row.featured .sr-name { color: var(--gold-1); }
+  .strategy-row .sr-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: var(--bg-3);
+    color: var(--text-mute);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .strategy-row.featured .sr-badge {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--gold-1);
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+  .strategy-row.unfit .sr-badge {
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--red);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+  .strategy-row .sr-outcomes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .strategy-row .sr-outcome {
+    background: var(--bg-3);
+    border-radius: 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--line-soft);
+  }
+  .strategy-row .sr-outcome.profit { border-left: 2px solid var(--green); }
+  .strategy-row .sr-outcome.loss { border-left: 2px solid var(--red); }
+  .strategy-row .sr-outcome.neutral { border-left: 2px solid var(--text-mute); }
+  .strategy-row .sr-team {
+    font-size: 9px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+    font-weight: 600;
+  }
+  .strategy-row .sr-pnl {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .strategy-row .sr-outcome.profit .sr-pnl { color: var(--green); }
+  .strategy-row .sr-outcome.loss .sr-pnl { color: var(--red); }
+  .strategy-row .sr-outcome.neutral .sr-pnl { color: var(--text-dim); }
+  .strategy-row .sr-action {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+  }
+  .strategy-row .sr-cell { text-align: center; }
+  .strategy-row .sr-k {
+    font-size: 9px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+    font-weight: 500;
+  }
+  .strategy-row .sr-v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .strategy-row .sr-v.gold { color: var(--gold-1); }
+  .strategy-row .sr-v.red { color: var(--red); }
+  .strategy-row .sr-v.green { color: var(--green); }
+
+  .check-divider {
+    text-align: center;
+    margin: 14px 0 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    position: relative;
+  }
+  .check-divider::before, .check-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--line);
+  }
+  .check-divider::before { left: 0; }
+  .check-divider::after { right: 0; }
+
+  .suggestion-output {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 12px;
+    animation: fadeSlideIn 0.3s ease;
+  }
+  .suggestion-output .so-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+    gap: 10px;
+  }
+  .suggestion-output .so-row:last-child { border-bottom: none; }
+  .suggestion-output .so-k {
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .suggestion-output .so-v {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+    text-align: right;
+  }
+  .suggestion-output .so-v.green { color: var(--green); }
+  .suggestion-output .so-v.red { color: var(--red); }
+  .suggestion-output .so-v.gold { color: var(--gold-1); }
+  .suggestion-empty {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-mute);
+    font-size: 12px;
+    font-style: italic;
+  }
+  .warn-banner {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--gold-1);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-top: 10px;
+    display: none;
+  }
+  .warn-banner.show { display: block; animation: fadeSlideIn 0.3s ease; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .actions button {
+    padding: 13px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .actions button:hover { border-color: var(--gold-2); color: var(--gold-1); }
+  .actions button:active { transform: scale(0.97); }
+  .actions button.primary {
+    background: linear-gradient(135deg, var(--gold-2), var(--gold-3));
+    border-color: var(--gold-2);
+    color: #2a1804;
+  }
+  .actions button.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .saved-list { display: flex; flex-direction: column; gap: 8px; }
+  .saved-item {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: border 0.15s;
+  }
+  .saved-item:hover { border-color: var(--gold-2); }
+  .saved-item .info { flex: 1; min-width: 0; }
+  .saved-item .name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .saved-item .meta {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+  }
+  .saved-item .acts { display: flex; gap: 6px; }
+  .saved-item button {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .saved-item button.load:hover { border-color: var(--green); color: var(--green); }
+  .saved-item button.del:hover { border-color: var(--red); color: var(--red); }
+
+  footer {
+    text-align: center;
+    padding: 24px 0 8px;
+    font-size: 10px;
+    color: var(--text-mute);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    background: var(--bg-3);
+    border: 1px solid var(--gold-2);
+    color: var(--gold-1);
+    padding: 12px 22px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rowFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0% { left: -100%; }
+    60%, 100% { left: 100%; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 24px rgba(245, 158, 11, 0.25)); }
+    50% { filter: drop-shadow(0 0 32px rgba(245, 158, 11, 0.4)); }
+  }
+  button { transition: transform 0.1s ease, background 0.15s ease, border 0.15s ease, color 0.15s ease; }
+  button:active { transform: scale(0.97); }
+
+  @media (max-width: 420px) {
+    .bet-fields { grid-template-columns: 1fr 1fr; }
+    .bet-fields .mini-field:first-child { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="brand">
+    <div class="pill">Cricket Bet Calculator</div>
+    <h1>Pitch<br/>Perfect</h1>
+    <div class="tagline">Lay smart. Back smarter.</div>
+    <div class="underline"></div>
+  </header>
+
+  <section class="card">
+    <div class="label">Match Setup</div>
+    <div class="field">
+      <label for="matchName">Match Name</label>
+      <input type="text" id="matchName" placeholder="e.g. RR vs CSK" />
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="matchDate">Match Date</label>
+        <input type="date" id="matchDate" />
+      </div>
+      <div class="field">
+        <label for="totalStake">Total Purse (₹)</label>
+        <input type="number" id="totalStake" placeholder="833" min="0" step="100" />
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="teamA">Team A</label>
+        <input type="text" id="teamA" placeholder="Team A" />
+      </div>
+      <div class="field">
+        <label for="teamB">Team B</label>
+        <input type="text" id="teamB" placeholder="Team B" />
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label">Live Purse</div>
+    <div class="purse">
+      <div class="stat balance">
+        <div class="k">Available</div>
+        <div class="v" id="availBalance">₹0</div>
+        <div class="sub" id="availPct">0% of purse</div>
+      </div>
+      <div class="stat exposure">
+        <div class="k">Total Liability</div>
+        <div class="v" id="totalLiab">₹0</div>
+        <div class="sub" id="totalLiabBets">0 bets</div>
+      </div>
+      <div class="stat full">
+        <div class="k">Net Exposure</div>
+        <div class="v" id="netExp">₹0</div>
+        <div class="sub" id="netExpPct">0% of purse</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label">Your Bets</div>
+    <div id="betList" class="bet-list"></div>
+    <button class="add-btn" id="addBetBtn">+ Add Bet</button>
+  </section>
+
+  <section class="card">
+    <div class="label">Match Outcome</div>
+    <div class="outcomes">
+      <div class="outcome-card neutral" id="outcomeA">
+        <div class="team-name">If <span id="oA-team">Team A</span> wins</div>
+        <div class="net" id="oA-val">₹0</div>
+      </div>
+      <div class="outcome-card neutral" id="outcomeB">
+        <div class="team-name">If <span id="oB-team">Team B</span> wins</div>
+        <div class="net" id="oB-val">₹0</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label">Plan Next Lay</div>
+
+    <div id="strategyPanel" class="strategy-panel" style="display:none;">
+      <div class="rp-title">Strategy Landscape</div>
+      <div class="rp-sub" id="strategySub">Each row is a complete plan. Pick the outcome shape that matches your gut feel.</div>
+      <div class="strategy-table" id="strategyTable"></div>
+    </div>
+    <div id="strategyEmpty" class="suggestion-empty" style="margin-bottom:14px;">
+      Add at least one bet to see strategy suggestions.
+    </div>
+
+    <div id="customDesigner" class="custom-designer" style="display:none;">
+      <div class="rp-title">Design Your Own Outcome</div>
+      <div class="rp-sub">Tell the engine the profit you want on each side. It solves the lay stake, odds, and team for you.</div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="targetA">Want if <span id="targetALabel">Team A</span> wins (₹)</label>
+          <input type="number" id="targetA" placeholder="500" step="10" />
+        </div>
+        <div class="field">
+          <label for="targetB">Want if <span id="targetBLabel">Team B</span> wins (₹)</label>
+          <input type="number" id="targetB" placeholder="500" step="10" />
+        </div>
+      </div>
+      <div id="customOutput" class="suggestion-output" style="display:none;"></div>
+    </div>
+
+    <div class="check-divider">Check Specific Odds</div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="suggTeam">Lay on Team</label>
+        <select id="suggTeam">
+          <option value="A">Team A</option>
+          <option value="B">Team B</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="suggOdds">Available Lay Odds</label>
+        <input type="number" id="suggOdds" placeholder="1.45" step="0.01" min="1.01" />
+      </div>
+    </div>
+    <div id="warnOdds" class="warn-banner">Heads up: lay odds above 2.0 are unusual for orthodox bookies. Double check this is what you want.</div>
+    <div id="suggOutput" class="suggestion-output">
+      <div class="suggestion-empty">Enter the available lay odds to test a specific scenario.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label">Actions</div>
+    <div class="actions">
+      <button class="primary" id="saveBtn">Save Match</button>
+      <button id="exportXlsBtn">Export XLS</button>
+      <button id="exportPdfBtn">Export PDF</button>
+      <button class="danger" id="clearBtn">Clear All</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label">Saved Matches (72h)</div>
+    <div id="savedList" class="saved-list">
+      <div class="empty-msg">No saved matches yet.</div>
+    </div>
+  </section>
+
+  <footer>Pitch Perfect &middot; v2.0 &middot; Local storage</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'pitch_perfect_matches_v2';
+const TTL_MS = 72 * 60 * 60 * 1000;
+
+const state = {
+  match: { name: '', date: '', stake: 0, teamA: '', teamB: '' },
+  bets: [],
+  suggestion: { team: 'A', odds: '' },
+  custom: { targetA: '', targetB: '' }
+};
+
+const fmt = (n) => {
+  if (isNaN(n) || n === null || n === undefined) return '₹0';
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n);
+  return sign + '₹' + abs.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+};
+
+/* BET MATH */
+function computeBetPnL(bet, teamAWins) {
+  const odds = parseFloat(bet.odds) || 0;
+  const stake = parseFloat(bet.stake) || 0;
+  const isOnA = bet.team === 'A';
+  const teamWonForBet = (isOnA && teamAWins) || (!isOnA && !teamAWins);
+  if (bet.type === 'back') return teamWonForBet ? stake * (odds - 1) : -stake;
+  const liab = stake * (odds - 1);
+  return teamWonForBet ? -liab : stake;
+}
+function liabilityOf(bet) {
+  const odds = parseFloat(bet.odds) || 0;
+  const stake = parseFloat(bet.stake) || 0;
+  if (bet.type === 'back') return stake;
+  return stake * (odds - 1);
+}
+function totalCommitted() { return state.bets.reduce((s, b) => s + liabilityOf(b), 0); }
+function totalLayLiability() { return state.bets.filter(b => b.type === 'lay').reduce((s, b) => s + liabilityOf(b), 0); }
+function netIfA() { return state.bets.reduce((s, b) => s + computeBetPnL(b, true), 0); }
+function netIfB() { return state.bets.reduce((s, b) => s + computeBetPnL(b, false), 0); }
+function availableBalance() { return (parseFloat(state.match.stake) || 0) - totalCommitted(); }
+
+/* Solve a single lay bet that lands on (target_newA, target_newB). */
+function solveLay(layTeam, targetNewA, targetNewB) {
+  const netA = netIfA();
+  const netB = netIfB();
+  let S, liability, O;
+  if (layTeam === 'A') {
+    S = targetNewB - netB;
+    liability = netA - targetNewA;
+  } else {
+    S = targetNewA - netA;
+    liability = netB - targetNewB;
+  }
+  if (S <= 0.001 || liability <= 0.001) return null;
+  O = 1 + liability / S;
+  if (O <= 1.001 || !isFinite(O)) return null;
+  let newNetA, newNetB;
+  if (layTeam === 'A') {
+    newNetA = netA - S * (O - 1);
+    newNetB = netB + S;
+  } else {
+    newNetA = netA + S;
+    newNetB = netB - S * (O - 1);
+  }
+  return { team: layTeam, stake: S, odds: O, liability, newNetA, newNetB };
+}
+
+/* Green Up: lay layTeam to make newNetA == newNetB. Use up to availCap liability. */
+function solveGreenUp(layTeam, availCap) {
+  const netA = netIfA();
+  const netB = netIfB();
+  const spread = layTeam === 'A' ? (netA - netB) : (netB - netA);
+  if (spread <= 0) return null;
+  if (availCap <= 0) return null;
+  const liability = Math.min(availCap, spread * 0.99);
+  const O = spread / (spread - liability);
+  const S = spread / O;
+  if (O <= 1.001 || !isFinite(O)) return null;
+  let newNetA, newNetB;
+  if (layTeam === 'A') {
+    newNetA = netA - S * (O - 1);
+    newNetB = netB + S;
+  } else {
+    newNetA = netA + S;
+    newNetB = netB - S * (O - 1);
+  }
+  return { team: layTeam, stake: S, odds: O, liability, newNetA, newNetB, equalProfit: Math.min(newNetA, newNetB) };
+}
+
+function solveFreeBetA(layTeam, availCap) {
+  const netA = netIfA();
+  const netB = netIfB();
+  if (availCap <= 0) return null;
+  if (layTeam === 'A') {
+    if (netB >= 0) return null;
+    const S = -netB;
+    let O = 1.05;
+    let liability = S * (O - 1);
+    if (liability > availCap) {
+      O = 1 + availCap / S;
+      liability = S * (O - 1);
+      if (O <= 1.001) return null;
+    }
+    return { team: layTeam, stake: S, odds: O, liability, newNetA: netA - liability, newNetB: 0 };
+  } else {
+    if (netB <= 0) return null;
+    if (netB > availCap) return null;
+    const O = 1.3;
+    const S = netB / (O - 1);
+    return { team: layTeam, stake: S, odds: O, liability: netB, newNetA: netA + S, newNetB: 0 };
+  }
+}
+
+function solveFreeBetB(layTeam, availCap) {
+  const netA = netIfA();
+  const netB = netIfB();
+  if (availCap <= 0) return null;
+  if (layTeam === 'A') {
+    if (netA <= 0) return null;
+    if (netA > availCap) return null;
+    const O = 1.3;
+    const S = netA / (O - 1);
+    return { team: layTeam, stake: S, odds: O, liability: netA, newNetA: 0, newNetB: netB + S };
+  } else {
+    if (netA >= 0) return null;
+    const S = -netA;
+    let O = 1.05;
+    let liability = S * (O - 1);
+    if (liability > availCap) {
+      O = 1 + availCap / S;
+      liability = S * (O - 1);
+      if (O <= 1.001) return null;
+    }
+    return { team: layTeam, stake: S, odds: O, liability, newNetA: 0, newNetB: netB - liability };
+  }
+}
+
+function computeStrategies() {
+  if (state.bets.length === 0) return null;
+  const netA = netIfA();
+  const netB = netIfB();
+  const avail = availableBalance();
+
+  const highIsA = netA > netB;
+  const layTeam = highIsA ? 'A' : 'B';
+  const spread = Math.abs(netA - netB);
+  if (spread < 0.01) return { balanced: true, netA, netB, avail };
+
+  const INF = Number.POSITIVE_INFINITY;
+  const greenFull = solveGreenUp(layTeam, INF);
+  const greenAffordable = solveGreenUp(layTeam, Math.max(avail, 0));
+  const freeA_unfit = solveFreeBetA(layTeam, INF);
+  const freeB_unfit = solveFreeBetB(layTeam, INF);
+  const refGreen = greenFull || greenAffordable;
+  if (!refGreen) return { invalid: true, netA, netB, avail };
+  const equalRef = refGreen.equalProfit;
+
+  const strategies = [];
+
+  function pushStrategy(name, badge, solution, featured = false) {
+    if (!solution) return;
+    const fits = solution.liability <= avail + 0.01;
+    const balanceAfter = avail - solution.liability;
+    strategies.push({
+      name, badge, featured,
+      ...solution,
+      fits, balanceAfter,
+      shortfall: fits ? 0 : (solution.liability - avail)
+    });
+  }
+
+  // 1. Lock equal profit (use the affordable version if it differs; otherwise the full version)
+  pushStrategy('Lock Equal Profit', 'Green Up', greenAffordable || greenFull, true);
+
+  function tiltTowardA(weight) {
+    if (!freeA_unfit) return null;
+    const tA = equalRef + (freeA_unfit.newNetA - equalRef) * weight;
+    const tB = equalRef + (freeA_unfit.newNetB - equalRef) * weight;
+    return solveLay(layTeam, tA, tB);
+  }
+  function tiltTowardB(weight) {
+    if (!freeB_unfit) return null;
+    const tA = equalRef + (freeB_unfit.newNetA - equalRef) * weight;
+    const tB = equalRef + (freeB_unfit.newNetB - equalRef) * weight;
+    return solveLay(layTeam, tA, tB);
+  }
+
+  pushStrategy(`Heavily favor ${teamLabel('A')}`, 'Tilt A+++', tiltTowardA(0.75));
+  pushStrategy(`Slightly favor ${teamLabel('A')}`, 'Tilt A', tiltTowardA(0.4));
+  pushStrategy(`Slightly favor ${teamLabel('B')}`, 'Tilt B', tiltTowardB(0.4));
+  pushStrategy(`Heavily favor ${teamLabel('B')}`, 'Tilt B+++', tiltTowardB(0.75));
+  pushStrategy(`Free Bet on ${teamLabel('A')}`, 'Zero on B', freeA_unfit);
+  pushStrategy(`Free Bet on ${teamLabel('B')}`, 'Zero on A', freeB_unfit);
+
+  return { strategies, layTeam, netA, netB, avail };
+}
+
+function solveCustom(targetA, targetB) {
+  if (state.bets.length === 0) return null;
+  const netA = netIfA();
+  const netB = netIfB();
+  let attempt = null;
+  if (targetA <= netA && targetB >= netB) {
+    attempt = solveLay('A', targetA, targetB);
+  } else if (targetB <= netB && targetA >= netA) {
+    attempt = solveLay('B', targetA, targetB);
+  }
+  if (!attempt) {
+    return {
+      invalid: true,
+      reason: `Cannot reach those targets by laying alone. Laying lowers P&L on one side and raises it on the other. Currently ${teamLabel('A')} = ${fmt(netA)}, ${teamLabel('B')} = ${fmt(netB)}.`
+    };
+  }
+  const avail = availableBalance();
+  const fits = attempt.liability <= avail + 0.01;
+  return {
+    ...attempt,
+    fits,
+    balanceAfter: avail - attempt.liability,
+    shortfall: fits ? 0 : (attempt.liability - avail)
+  };
+}
+
+function computeOddsCheck() {
+  const { team, odds } = state.suggestion;
+  const O = parseFloat(odds);
+  if (!O || O <= 1) return null;
+  if (state.bets.length === 0) return null;
+  const netA = netIfA();
+  const netB = netIfB();
+  let S;
+  if (team === 'A') S = (netA - netB) / O;
+  else S = (netB - netA) / O;
+  const stake = S;
+  const liability = stake > 0 ? stake * (O - 1) : 0;
+  let newNetA, newNetB;
+  if (team === 'A') {
+    newNetA = netA - stake * (O - 1);
+    newNetB = netB + stake;
+  } else {
+    newNetA = netA + stake;
+    newNetB = netB - stake * (O - 1);
+  }
+  const avail = availableBalance();
+  const balanceAfter = avail - liability;
+  const fits = liability <= avail + 0.01;
+  return {
+    stake, liability, newNetA, newNetB, balanceAfter, fits,
+    shortfall: fits ? 0 : (liability - avail),
+    validStake: stake > 0,
+    O
+  };
+}
+
+/* RENDER */
+function teamLabel(t) {
+  if (t === 'A') return state.match.teamA || 'Team A';
+  return state.match.teamB || 'Team B';
+}
+
+function renderPurse() {
+  const stake = parseFloat(state.match.stake) || 0;
+  const liab = totalLayLiability();
+  const committed = totalCommitted();
+  const avail = stake - committed;
+  const layCount = state.bets.filter(b => b.type === 'lay').length;
+  document.getElementById('availBalance').textContent = fmt(avail);
+  document.getElementById('availPct').textContent = stake > 0 ? `${((avail / stake) * 100).toFixed(1)}% of purse` : '0% of purse';
+  document.getElementById('totalLiab').textContent = fmt(liab);
+  document.getElementById('totalLiabBets').textContent = `${layCount} lay bet${layCount !== 1 ? 's' : ''}`;
+  document.getElementById('netExp').textContent = fmt(committed);
+  document.getElementById('netExpPct').textContent = stake > 0 ? `${((committed / stake) * 100).toFixed(1)}% of purse` : '0% of purse';
+}
+
+function renderBets() {
+  const list = document.getElementById('betList');
+  list.innerHTML = '';
+  if (state.bets.length === 0) {
+    list.innerHTML = '<div class="empty-msg">No bets yet. Tap the button below to add your first.</div>';
+    return;
+  }
+  state.bets.forEach((bet, idx) => {
+    const liab = liabilityOf(bet);
+    const pnlA = computeBetPnL(bet, true);
+    const pnlB = computeBetPnL(bet, false);
+    const labelA = bet.team === 'A'
+      ? (bet.type === 'back' ? 'Profit if Win' : 'Loss if Win')
+      : (bet.type === 'back' ? 'Loss if Win' : 'Profit if Win');
+    const labelB = bet.team === 'A'
+      ? (bet.type === 'back' ? 'Loss if Lose' : 'Profit if Lose')
+      : (bet.type === 'back' ? 'Profit if Lose' : 'Loss if Lose');
+    const row = document.createElement('div');
+    row.className = `bet-row ${bet.type}`;
+    row.innerHTML = `
+      <div class="top">
+        <div class="bet-type-toggle">
+          <button class="${bet.type === 'back' ? 'active back' : ''}" data-action="type" data-idx="${idx}" data-val="back">Back</button>
+          <button class="${bet.type === 'lay' ? 'active lay' : ''}" data-action="type" data-idx="${idx}" data-val="lay">Lay</button>
+        </div>
+        <button class="remove-btn" data-action="remove" data-idx="${idx}" title="Remove">×</button>
+      </div>
+      <div class="bet-fields">
+        <div class="mini-field">
+          <label>Team</label>
+          <select data-action="team" data-idx="${idx}">
+            <option value="A" ${bet.team === 'A' ? 'selected' : ''}>${teamLabel('A')}</option>
+            <option value="B" ${bet.team === 'B' ? 'selected' : ''}>${teamLabel('B')}</option>
+          </select>
+        </div>
+        <div class="mini-field">
+          <label>Odds</label>
+          <input type="number" step="0.01" min="1.01" value="${bet.odds}" placeholder="1.45" data-action="odds" data-idx="${idx}" />
+        </div>
+        <div class="mini-field">
+          <label>${bet.type === 'back' ? 'Stake (₹)' : 'Backer Stake (₹)'}</label>
+          <input type="number" step="1" min="0" value="${bet.stake}" placeholder="500" data-action="stake" data-idx="${idx}" />
+        </div>
+      </div>
+      ${bet.type === 'lay' ? `
+        <div class="liability-strip">
+          <span class="lbl">Liability (locks from purse)</span>
+          <span class="val">${fmt(liab)}</span>
+        </div>
+      ` : ''}
+      <div class="pnl-display">
+        <div class="pnl-cell ${pnlA >= 0 ? 'profit' : 'loss'}">
+          <div class="pnl-label">${labelA} (${teamLabel('A')} wins)</div>
+          <div class="pnl-val">${pnlA >= 0 ? '+' : ''}${fmt(pnlA)}</div>
+        </div>
+        <div class="pnl-cell ${pnlB >= 0 ? 'profit' : 'loss'}">
+          <div class="pnl-label">${labelB} (${teamLabel('B')} wins)</div>
+          <div class="pnl-val">${pnlB >= 0 ? '+' : ''}${fmt(pnlB)}</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function renderOutcomes() {
+  document.getElementById('oA-team').textContent = teamLabel('A');
+  document.getElementById('oB-team').textContent = teamLabel('B');
+  const a = netIfA();
+  const b = netIfB();
+  const cardA = document.getElementById('outcomeA');
+  const cardB = document.getElementById('outcomeB');
+  document.getElementById('oA-val').textContent = (a >= 0 ? '+' : '') + fmt(a);
+  document.getElementById('oB-val').textContent = (b >= 0 ? '+' : '') + fmt(b);
+  if (state.bets.length === 0) {
+    cardA.className = 'outcome-card neutral';
+    cardB.className = 'outcome-card neutral';
+  } else {
+    cardA.className = 'outcome-card ' + (a >= 0 ? 'profit' : 'loss');
+    cardB.className = 'outcome-card ' + (b >= 0 ? 'profit' : 'loss');
+  }
+}
+
+function renderStrategies() {
+  const panel = document.getElementById('strategyPanel');
+  const empty = document.getElementById('strategyEmpty');
+  const sub = document.getElementById('strategySub');
+  const tbl = document.getElementById('strategyTable');
+  const result = computeStrategies();
+  if (!result) {
+    panel.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  panel.style.display = 'block';
+  if (result.balanced) {
+    sub.textContent = 'Your position is already balanced. No additional lay needed.';
+    tbl.innerHTML = '';
+    return;
+  }
+  if (result.invalid) {
+    sub.textContent = 'No strategies available. Try adjusting your existing bets.';
+    tbl.innerHTML = '';
+    return;
+  }
+  const layTeamLabel = teamLabel(result.layTeam);
+  sub.innerHTML = `Auto-laying <span style="color:var(--gold-1); font-weight:600;">${layTeamLabel}</span> (the side currently winning your book). Available: <span style="color:var(--gold-1); font-weight:600;">${fmt(result.avail)}</span>. Faded rows need more liability than your purse can fund right now.`;
+  if (result.strategies.length === 0) {
+    tbl.innerHTML = '<div class="suggestion-empty">No reachable strategies right now.</div>';
+    return;
+  }
+  tbl.innerHTML = result.strategies.map(s => {
+    const aClass = s.newNetA > 0.01 ? 'profit' : (s.newNetA < -0.01 ? 'loss' : 'neutral');
+    const bClass = s.newNetB > 0.01 ? 'profit' : (s.newNetB < -0.01 ? 'loss' : 'neutral');
+    const fitBadge = s.fits
+      ? `<div class="sr-badge">${s.badge}</div>`
+      : `<div class="sr-badge">Short ${fmt(s.shortfall)}</div>`;
+    const balanceVClass = s.fits ? 'green' : 'red';
+    return `
+      <div class="strategy-row ${s.featured ? 'featured' : ''} ${s.fits ? '' : 'unfit'}">
+        <div class="sr-head">
+          <div class="sr-name">${s.name}</div>
+          ${fitBadge}
+        </div>
+        <div class="sr-outcomes">
+          <div class="sr-outcome ${aClass}">
+            <div class="sr-team">${teamLabel('A')} wins</div>
+            <div class="sr-pnl">${s.newNetA >= 0 ? '+' : ''}${fmt(s.newNetA)}</div>
+          </div>
+          <div class="sr-outcome ${bClass}">
+            <div class="sr-team">${teamLabel('B')} wins</div>
+            <div class="sr-pnl">${s.newNetB >= 0 ? '+' : ''}${fmt(s.newNetB)}</div>
+          </div>
+        </div>
+        <div class="sr-action">
+          <div class="sr-cell">
+            <div class="sr-k">Lay Odds</div>
+            <div class="sr-v gold">${s.odds.toFixed(2)}</div>
+          </div>
+          <div class="sr-cell">
+            <div class="sr-k">Stake</div>
+            <div class="sr-v">${fmt(s.stake)}</div>
+          </div>
+          <div class="sr-cell">
+            <div class="sr-k">Liability</div>
+            <div class="sr-v ${balanceVClass}">${fmt(s.liability)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCustomDesigner() {
+  const wrap = document.getElementById('customDesigner');
+  const out = document.getElementById('customOutput');
+  if (state.bets.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  document.getElementById('targetALabel').textContent = teamLabel('A');
+  document.getElementById('targetBLabel').textContent = teamLabel('B');
+  const tA = parseFloat(state.custom.targetA);
+  const tB = parseFloat(state.custom.targetB);
+  if (isNaN(tA) || isNaN(tB)) {
+    out.style.display = 'none';
+    return;
+  }
+  out.style.display = 'block';
+  const result = solveCustom(tA, tB);
+  if (!result) {
+    out.innerHTML = '<div class="suggestion-empty">Add at least one bet first.</div>';
+    return;
+  }
+  if (result.invalid) {
+    out.innerHTML = `<div class="suggestion-empty" style="color: var(--red);">${result.reason}</div>`;
+    return;
+  }
+  const balanceVClass = result.fits ? 'green' : 'red';
+  const fitsLine = result.fits
+    ? `<div class="so-row"><span class="so-k">Status</span><span class="so-v green">Fits in your purse</span></div>`
+    : `<div class="so-row"><span class="so-k">⚠ Status</span><span class="so-v red">Short by ${fmt(result.shortfall)}</span></div>`;
+  out.innerHTML = `
+    <div class="so-row"><span class="so-k">Lay on team</span><span class="so-v gold">${teamLabel(result.team)}</span></div>
+    <div class="so-row"><span class="so-k">At odds</span><span class="so-v gold">${result.odds.toFixed(2)}</span></div>
+    <div class="so-row"><span class="so-k">Backer stake</span><span class="so-v">${fmt(result.stake)}</span></div>
+    <div class="so-row"><span class="so-k">Liability</span><span class="so-v">${fmt(result.liability)}</span></div>
+    <div class="so-row"><span class="so-k">Balance after</span><span class="so-v ${balanceVClass}">${fmt(result.balanceAfter)}</span></div>
+    <div class="so-row"><span class="so-k">Final P&L if ${teamLabel('A')} wins</span><span class="so-v ${result.newNetA >= 0 ? 'green' : 'red'}">${result.newNetA >= 0 ? '+' : ''}${fmt(result.newNetA)}</span></div>
+    <div class="so-row"><span class="so-k">Final P&L if ${teamLabel('B')} wins</span><span class="so-v ${result.newNetB >= 0 ? 'green' : 'red'}">${result.newNetB >= 0 ? '+' : ''}${fmt(result.newNetB)}</span></div>
+    ${fitsLine}
+  `;
+}
+
+function renderOddsCheck() {
+  const wrap = document.getElementById('suggOutput');
+  const oddsInput = parseFloat(state.suggestion.odds);
+  document.getElementById('warnOdds').classList.toggle('show', oddsInput >= 2.0);
+  const sel = document.getElementById('suggTeam');
+  sel.options[0].textContent = teamLabel('A');
+  sel.options[1].textContent = teamLabel('B');
+  const result = computeOddsCheck();
+  if (!result) {
+    wrap.innerHTML = '<div class="suggestion-empty">Enter the available lay odds to test a specific scenario.</div>';
+    return;
+  }
+  const target = teamLabel(state.suggestion.team);
+  const otherTeam = state.suggestion.team === 'A' ? teamLabel('B') : teamLabel('A');
+  if (!result.validStake) {
+    wrap.innerHTML = `
+      <div class="so-row"><span class="so-k">Result</span><span class="so-v red">Wrong team for green up</span></div>
+      <div class="suggestion-empty" style="padding-top:10px;">Laying ${target} at ${result.O.toFixed(2)} would push your book further out of balance. Try laying ${otherTeam} at this odds instead.</div>
+    `;
+    return;
+  }
+  const balanceVClass = result.fits ? 'green' : 'red';
+  const fitsLine = result.fits
+    ? `<div class="so-row"><span class="so-k">Status</span><span class="so-v green">Fits in your purse</span></div>`
+    : `<div class="so-row"><span class="so-k">⚠ Status</span><span class="so-v red">Short by ${fmt(result.shortfall)}</span></div>`;
+  wrap.innerHTML = `
+    <div class="so-row"><span class="so-k">Strategy</span><span class="so-v gold">Green Up @ ${result.O.toFixed(2)}</span></div>
+    <div class="so-row"><span class="so-k">Lay ${target}</span><span class="so-v">${fmt(result.stake)}</span></div>
+    <div class="so-row"><span class="so-k">Liability locked</span><span class="so-v">${fmt(result.liability)}</span></div>
+    <div class="so-row"><span class="so-k">Balance after</span><span class="so-v ${balanceVClass}">${fmt(result.balanceAfter)}</span></div>
+    <div class="so-row"><span class="so-k">P&L if ${teamLabel('A')} wins</span><span class="so-v ${result.newNetA >= 0 ? 'green' : 'red'}">${result.newNetA >= 0 ? '+' : ''}${fmt(result.newNetA)}</span></div>
+    <div class="so-row"><span class="so-k">P&L if ${teamLabel('B')} wins</span><span class="so-v ${result.newNetB >= 0 ? 'green' : 'red'}">${result.newNetB >= 0 ? '+' : ''}${fmt(result.newNetB)}</span></div>
+    ${fitsLine}
+  `;
+}
+
+function renderAll() {
+  renderPurse();
+  renderBets();
+  renderOutcomes();
+  renderStrategies();
+  renderCustomDesigner();
+  renderOddsCheck();
+}
+
+function updateRowVisuals(idx) {
+  const list = document.getElementById('betList');
+  const row = list.children[idx];
+  if (!row) { renderBets(); return; }
+  const bet = state.bets[idx];
+  const pnlA = computeBetPnL(bet, true);
+  const pnlB = computeBetPnL(bet, false);
+  const liab = liabilityOf(bet);
+  const strip = row.querySelector('.liability-strip .val');
+  if (strip) strip.textContent = fmt(liab);
+  const cells = row.querySelectorAll('.pnl-cell');
+  if (cells.length === 2) {
+    cells[0].className = 'pnl-cell ' + (pnlA >= 0 ? 'profit' : 'loss');
+    cells[0].querySelector('.pnl-val').textContent = (pnlA >= 0 ? '+' : '') + fmt(pnlA);
+    cells[1].className = 'pnl-cell ' + (pnlB >= 0 ? 'profit' : 'loss');
+    cells[1].querySelector('.pnl-val').textContent = (pnlB >= 0 ? '+' : '') + fmt(pnlB);
+  }
+}
+
+/* WIRING */
+function init() {
+  ['matchName','matchDate','totalStake','teamA','teamB'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      state.match.name = document.getElementById('matchName').value;
+      state.match.date = document.getElementById('matchDate').value;
+      state.match.stake = document.getElementById('totalStake').value;
+      state.match.teamA = document.getElementById('teamA').value;
+      state.match.teamB = document.getElementById('teamB').value;
+      renderAll();
+    });
+  });
+  document.getElementById('addBetBtn').addEventListener('click', () => {
+    state.bets.push({ type: 'lay', team: 'A', odds: '', stake: '' });
+    renderAll();
+  });
+  document.getElementById('betList').addEventListener('input', (e) => {
+    const t = e.target;
+    const idx = parseInt(t.dataset.idx);
+    if (isNaN(idx)) return;
+    if (t.dataset.action === 'odds') state.bets[idx].odds = t.value;
+    if (t.dataset.action === 'stake') state.bets[idx].stake = t.value;
+    if (t.dataset.action === 'team') state.bets[idx].team = t.value;
+    renderPurse();
+    renderOutcomes();
+    renderStrategies();
+    renderCustomDesigner();
+    renderOddsCheck();
+    updateRowVisuals(idx);
+  });
+  document.getElementById('betList').addEventListener('change', (e) => {
+    const t = e.target;
+    const idx = parseInt(t.dataset.idx);
+    if (isNaN(idx)) return;
+    if (t.dataset.action === 'team') {
+      state.bets[idx].team = t.value;
+      renderAll();
+    }
+  });
+  document.getElementById('betList').addEventListener('click', (e) => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    const idx = parseInt(t.dataset.idx);
+    if (isNaN(idx)) return;
+    if (t.dataset.action === 'remove') {
+      state.bets.splice(idx, 1);
+      renderAll();
+    } else if (t.dataset.action === 'type') {
+      state.bets[idx].type = t.dataset.val;
+      renderAll();
+    }
+  });
+  document.getElementById('targetA').addEventListener('input', e => {
+    state.custom.targetA = e.target.value;
+    renderCustomDesigner();
+  });
+  document.getElementById('targetB').addEventListener('input', e => {
+    state.custom.targetB = e.target.value;
+    renderCustomDesigner();
+  });
+  document.getElementById('suggTeam').addEventListener('change', e => {
+    state.suggestion.team = e.target.value;
+    renderOddsCheck();
+  });
+  document.getElementById('suggOdds').addEventListener('input', e => {
+    state.suggestion.odds = e.target.value;
+    renderOddsCheck();
+  });
+  document.getElementById('saveBtn').addEventListener('click', saveMatch);
+  document.getElementById('exportXlsBtn').addEventListener('click', exportXLS);
+  document.getElementById('exportPdfBtn').addEventListener('click', exportPDF);
+  document.getElementById('clearBtn').addEventListener('click', clearAll);
+  document.getElementById('savedList').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.classList.contains('load')) loadMatch(id);
+    if (btn.classList.contains('del')) deleteMatch(id);
+  });
+  pruneSaved();
+  renderSaved();
+  renderAll();
+}
+
+/* STORAGE */
+function readStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function writeStore(arr) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch (e) {}
+}
+function pruneSaved() {
+  const now = Date.now();
+  const arr = readStore().filter(m => (now - m.savedAt) < TTL_MS);
+  writeStore(arr);
+}
+function saveMatch() {
+  if (!state.match.name) { toast('Add a match name first'); return; }
+  const arr = readStore();
+  const id = 'm_' + Date.now();
+  arr.unshift({ id, savedAt: Date.now(), data: JSON.parse(JSON.stringify(state)) });
+  writeStore(arr);
+  renderSaved();
+  toast('Match saved');
+}
+function loadMatch(id) {
+  const arr = readStore();
+  const m = arr.find(x => x.id === id);
+  if (!m) return;
+  Object.assign(state, JSON.parse(JSON.stringify(m.data)));
+  if (!state.custom) state.custom = { targetA: '', targetB: '' };
+  document.getElementById('matchName').value = state.match.name || '';
+  document.getElementById('matchDate').value = state.match.date || '';
+  document.getElementById('totalStake').value = state.match.stake || '';
+  document.getElementById('teamA').value = state.match.teamA || '';
+  document.getElementById('teamB').value = state.match.teamB || '';
+  document.getElementById('suggOdds').value = state.suggestion.odds || '';
+  document.getElementById('suggTeam').value = state.suggestion.team || 'A';
+  document.getElementById('targetA').value = state.custom.targetA || '';
+  document.getElementById('targetB').value = state.custom.targetB || '';
+  renderAll();
+  toast('Match loaded');
+}
+function deleteMatch(id) {
+  let arr = readStore().filter(m => m.id !== id);
+  writeStore(arr);
+  renderSaved();
+  toast('Match deleted');
+}
+function clearAll() {
+  if (!confirm('Clear all current data? This will not affect saved matches.')) return;
+  state.match = { name: '', date: '', stake: 0, teamA: '', teamB: '' };
+  state.bets = [];
+  state.suggestion = { team: 'A', odds: '' };
+  state.custom = { targetA: '', targetB: '' };
+  ['matchName','matchDate','totalStake','teamA','teamB','suggOdds','targetA','targetB'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('suggTeam').value = 'A';
+  renderAll();
+  toast('Cleared');
+}
+
+function renderSaved() {
+  pruneSaved();
+  const list = document.getElementById('savedList');
+  const arr = readStore();
+  if (arr.length === 0) {
+    list.innerHTML = '<div class="empty-msg">No saved matches yet. Save one to revisit within 72 hours.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  arr.forEach(m => {
+    const ageMs = Date.now() - m.savedAt;
+    const hoursLeft = Math.max(0, Math.round((TTL_MS - ageMs) / (60 * 60 * 1000)));
+    const item = document.createElement('div');
+    item.className = 'saved-item';
+    item.innerHTML = `
+      <div class="info">
+        <div class="name">${m.data.match.name || 'Untitled'}</div>
+        <div class="meta">${m.data.match.teamA || 'A'} vs ${m.data.match.teamB || 'B'} &middot; ${m.data.match.date || '-'} &middot; ${hoursLeft}h left</div>
+      </div>
+      <div class="acts">
+        <button class="load" data-id="${m.id}">Load</button>
+        <button class="del" data-id="${m.id}">Del</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+/* EXPORT */
+function exportXLS() {
+  if (state.bets.length === 0 && !state.match.name) { toast('Nothing to export'); return; }
+  const wb = XLSX.utils.book_new();
+  const meta = [
+    ['Pitch Perfect Cricket Bet Calculator'],
+    [],
+    ['Match Name', state.match.name || ''],
+    ['Date', state.match.date || ''],
+    ['Team A', state.match.teamA || ''],
+    ['Team B', state.match.teamB || ''],
+    ['Total Purse', parseFloat(state.match.stake) || 0],
+    [],
+    ['Available Balance', availableBalance()],
+    ['Total Liability', totalLayLiability()],
+    ['Net P&L if ' + teamLabel('A') + ' wins', netIfA()],
+    ['Net P&L if ' + teamLabel('B') + ' wins', netIfB()],
+  ];
+  const betsData = [['#', 'Type', 'Team', 'Odds', 'Stake', 'Liability', 'P&L if ' + teamLabel('A') + ' wins', 'P&L if ' + teamLabel('B') + ' wins']];
+  state.bets.forEach((b, i) => {
+    betsData.push([
+      i + 1, b.type.toUpperCase(), teamLabel(b.team),
+      parseFloat(b.odds) || 0, parseFloat(b.stake) || 0,
+      liabilityOf(b), computeBetPnL(b, true), computeBetPnL(b, false),
+    ]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(meta);
+  const ws2 = XLSX.utils.aoa_to_sheet(betsData);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Bets');
+  const fname = `pitch_perfect_${(state.match.name || 'match').replace(/[^\w]+/g, '_')}_${Date.now()}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  toast('XLS exported');
+}
+
+function exportPDF() {
+  if (state.bets.length === 0 && !state.match.name) { toast('Nothing to export'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFillColor(7, 9, 13);
+  doc.rect(0, 0, 210, 36, 'F');
+  doc.setTextColor(245, 158, 11);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text('PITCH PERFECT', 14, 18);
+  doc.setFontSize(10);
+  doc.setTextColor(154, 166, 184);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Cricket Bet Calculator', 14, 26);
+  doc.text(new Date().toLocaleString(), 14, 32);
+  doc.setTextColor(20, 20, 20);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text(state.match.name || 'Untitled Match', 14, 50);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`${teamLabel('A')} vs ${teamLabel('B')}    |    ${state.match.date || '-'}    |    Purse: ${fmt(state.match.stake)}`, 14, 57);
+  doc.autoTable({
+    startY: 64,
+    head: [['Metric', 'Value']],
+    body: [
+      ['Available Balance', fmt(availableBalance())],
+      ['Total Liability', fmt(totalLayLiability())],
+      [`Net P&L if ${teamLabel('A')} wins`, (netIfA() >= 0 ? '+' : '') + fmt(netIfA())],
+      [`Net P&L if ${teamLabel('B')} wins`, (netIfB() >= 0 ? '+' : '') + fmt(netIfB())],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [245, 158, 11], textColor: [42, 24, 4] },
+    styles: { fontSize: 10 }
+  });
+  if (state.bets.length > 0) {
+    const rows = state.bets.map((b, i) => [
+      i + 1, b.type.toUpperCase(), teamLabel(b.team),
+      (parseFloat(b.odds) || 0).toFixed(2), fmt(parseFloat(b.stake) || 0),
+      fmt(liabilityOf(b)),
+      (computeBetPnL(b, true) >= 0 ? '+' : '') + fmt(computeBetPnL(b, true)),
+      (computeBetPnL(b, false) >= 0 ? '+' : '') + fmt(computeBetPnL(b, false)),
+    ]);
+    doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 8,
+      head: [['#', 'Type', 'Team', 'Odds', 'Stake', 'Liability', `If ${teamLabel('A')} wins`, `If ${teamLabel('B')} wins`]],
+      body: rows,
+      theme: 'striped',
+      headStyles: { fillColor: [28, 35, 48], textColor: [253, 230, 138] },
+      styles: { fontSize: 9 }
+    });
+  }
+  const fname = `pitch_perfect_${(state.match.name || 'match').replace(/[^\w]+/g, '_')}_${Date.now()}.pdf`;
+  doc.save(fname);
+  toast('PDF exported');
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
