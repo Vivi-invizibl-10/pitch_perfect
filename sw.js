@@ -1,9 +1,11 @@
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(res => {
-      return res || fetch(e.request).catch(() => {
-        return new Response("Offline", { status: 200 });
-      });
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(k => {
+          if (k !== "app-cache") return caches.delete(k);
+        })
+      );
     })
   );
 });
